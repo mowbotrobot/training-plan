@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chicago 13.1 — Training Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #07070e;
+    --bg2: #0b0b18;
+    --bg3: #0f0f20;
+    --border: #161626;
+    --border2: #1e1e32;
+    --text: #e0e0f0;
+    --muted: #444466;
+    --dim: #222240;
+    --accent: #4db8a0;
+    --easy: #4a90d9;
+    --moderate: #4db8a0;
+    --intervals: #e05555;
+    --threshold: #e07a35;
+    --trial: #f6c90e;
+    --race: #d45a5a;
+    --rest: #1e1e30;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 16px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .header-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 5px;
+  }
+
+  .header h1 {
+    font-size: 20px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+
+  .pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .pill {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+
+  .pill span:first-child {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+
+  .pill span:last-child {
+    color: #c0c0e0;
+    font-weight: 500;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  /* Week tabs */
+  .tabs {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--dim);
+    padding: 12px 16px 10px;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-sub {
+    font-size: 9px;
+    color: var(--dim);
+    margin-top: 2px;
+  }
+
+  .tab.active .tab-sub { color: var(--muted); }
+
+  /* Week content */
+  .week {
+    display: none;
+    padding: 16px;
+  }
+
+  .week.active { display: block; }
+
+  .week-meta {
+    margin-bottom: 14px;
+  }
+
+  .week-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #c0c0e0;
+    margin-bottom: 2px;
+  }
+
+  .week-dates {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+
+  .week-focus {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* Day rows */
+  .day {
+    margin-bottom: 4px;
+  }
+
+  .day-btn {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .day-btn.open {
+    border-radius: 8px 8px 0 0;
+  }
+
+  .day-btn:active { opacity: 0.8; }
+
+  .day-date {
+    flex-shrink: 0;
+    width: 36px;
+  }
+
+  .day-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .day-date-str {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--dim);
+  }
+
+  .day-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .day-label-text {
+    flex: 1;
+    font-size: 13px;
+    color: #c0c0e0;
+  }
+
+  .day-label-text.rest-label { color: var(--dim); }
+
+  .day-miles {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .day-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+
+  /* Status backgrounds */
+  .status-done   { background: #0a1a12; border-color: #1f4a2a; }
+  .status-key    { background: #1a1500; border-color: #3a2e00; }
+  .status-rest   { background: #08080f; border-color: #111122; }
+  .status-race   { background: #1a0808; border-color: #5a1515; }
+  .status-upcoming { background: #0b0b18; border-color: #161626; }
+  .status-optional { background: #0c0c1a; border-color: #222238; }
+
+  /* Detail panel */
+  .day-detail {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top: 1px solid var(--border2);
+    border-radius: 0 0 8px 8px;
+    padding: 10px 12px 14px;
+    display: none;
+  }
+
+  .day-detail.open { display: block; }
+
+  .detail-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #6060808;
+    line-height: 1.7;
+    color: #808090;
+    margin-bottom: 8px;
+  }
+
+  .detail-note {
+    display: flex;
+    gap: 8px;
+  }
+
+  .note-bar {
+    width: 2px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .note-text {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  /* Progression panel */
+  .progression {
+    margin-top: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .prog-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .prog-tracks {
+    display: flex;
+    gap: 8px;
+  }
+
+  .prog-track {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .prog-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    margin-bottom: 6px;
+  }
+
+  .prog-item {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--dim);
+    margin-bottom: 3px;
+    padding-left: 0;
+    border-left: 2px solid transparent;
+    padding-left: 0;
+    transition: color 0.15s;
+  }
+
+  .prog-item.current {
+    color: #c0c0e0;
+    font-weight: 500;
+    padding-left: 8px;
+  }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .loading-dot {
+    animation: pulse 1.2s infinite;
+    display: inline-block;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  /* Countdown */
+  .countdown {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .countdown span {
+    color: var(--accent);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label" id="race-date-label">Loading...</div>
+  <h1 id="race-name">Training Plan</h1>
+  <div class="pills" id="pills"></div>
+  <div class="countdown" id="countdown"></div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#4a90d9"></div>Easy</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4db8a0"></div>Moderate</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e05555"></div>Intervals</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e07a35"></div>Threshold</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f6c90e"></div>Race/Trial</div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div id="weeks-container"><div class="loading"><span class="loading-dot">●</span> Loading plan...</div></div>
+
+<script>
+const GIST_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://gist.githubusercontent.com/mowbotrobot/6e6293bc31fa5dcd2e08c0c14fbccba4/raw/training_plan.json");
+
+const TYPE_COLORS = {
+  easy:"#4a90d9", moderate:"#4db8a0", intervals:"#e05555",
+  threshold:"#e07a35", trial:"#f6c90e", race:"#d45a5a", rest:"#1e1e30"
+};
+
+const STATUS_MAP = {
+  done:"status-done", key:"status-key", rest:"status-rest",
+  race:"status-race", upcoming:"status-upcoming", optional:"status-optional"
+};
+
+const BADGES = {
+  done: { text:"Done", color:"#4db8a0" },
+  key:  { text:"Key",  color:"#e07a35" },
+  race: { text:"Race Day", color:"#d45a5a" },
+  optional: { text:"Optional", color:"#f6c90e" }
+};
+
+const PROGRESSIONS = [
+  ["Intervals", "#e05555", [
+    "Wk1: Recovery", "Wk2: 5×1000m @ 6:05/mi",
+    "Wk3: 4×1mi @ 6:05–6:10/mi", "Wk4: 3×2mi cruise @ HM pace",
+    "Wk5: 3×1mi sharp", "Wk6: 4×400m tune-up"
+  ]],
+  ["Threshold", "#e07a35", [
+    "Wk1: 15 min @ 6:52/mi", "Wk2: 20 min continuous",
+    "Wk3: 25 min continuous", "Wk4: 30 min — peak",
+    "Wk5: 20 min (taper)", "—"
+  ]],
+  ["Long Run", "#4db8a0", [
+    "Wk1: Knee recovery", "Wk2: 6 mi easy",
+    "Wk3: 10K or 11 mi tempo", "Wk4: 12 mi w/ 4 @ HM pace",
+    "Wk5: 8 mi easy", "Race Day"
+  ]]
+];
+
+let plan = null;
+let openDay = null;
+
+async function loadPlan() {
+  try {
+    const r = await fetch(GIST_URL + "?t=" + Date.now());
+    plan = await r.json();
+    renderHeader();
+    renderTabs();
+    renderWeeks();
+    selectDefaultWeek();
+  } catch(e) {
+    document.getElementById("weeks-container").innerHTML =
+      '<div class="loading">Failed to load plan. Check connection.</div>';
+  }
+}
+
+function renderHeader() {
+  const race = plan.race;
+  document.getElementById("race-name").textContent = race.name;
+
+  const raceDate = new Date(race.date + "T12:00:00");
+  document.getElementById("race-date-label").textContent =
+    raceDate.toLocaleDateString("en-US", {month:"long", day:"numeric", year:"numeric"}) + " · Chicago";
+
+  const pills = document.getElementById("pills");
+  const items = [
+    ["Goal", race.goals.primary || race.goals.conservative || "—"],
+    ["Pace", race.pace],
+  ];
+  pills.innerHTML = items.map(([k,v]) => `
+    <div class="pill">
+      <span>${k}</span><span>${v}</span>
+    </div>`).join("");
+
+  const today = new Date();
+  const diff = Math.ceil((raceDate - today) / (1000*60*60*24));
+  const cdEl = document.getElementById("countdown");
+  if (diff > 0) {
+    cdEl.innerHTML = `<span>${diff}</span> days to race`;
+  } else if (diff === 0) {
+    cdEl.innerHTML = `<span>Race day!</span>`;
+  } else {
+    cdEl.innerHTML = `Race was <span>${Math.abs(diff)}</span> days ago`;
+  }
+}
+
+function renderTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = plan.weeks.map((w, i) => `
+    <button class="tab" data-week="${i}" onclick="selectWeek(${i})">
+      ${i === plan.weeks.length - 1 ? "Race Wk" : "Week " + (i+1)}
+      <div class="tab-sub">${w.miles || ""}</div>
+    </button>`).join("");
+}
+
+function renderWeeks() {
+  const container = document.getElementById("weeks-container");
+  container.innerHTML = plan.weeks.map((week, wi) => `
+    <div class="week" id="week-${wi}">
+      <div class="week-meta">
+        <div class="week-label">${week.label}</div>
+        <div class="week-dates">${week.dates} · ${week.miles || ""}</div>
+        <div class="week-focus">${week.focus || ""}</div>
+      </div>
+      ${week.days.map((d, di) => renderDay(d, wi, di)).join("")}
+      ${wi < plan.weeks.length - 1 ? renderProgression(wi) : ""}
+    </div>`).join("");
+}
+
+function renderDay(d, wi, di) {
+  const color = TYPE_COLORS[d.type] || "#555";
+  const status = d.status || (d.type === "rest" ? "rest" : "upcoming");
+  const statusClass = STATUS_MAP[status] || "status-upcoming";
+  const badge = BADGES[status];
+  const isRest = d.type === "rest";
+  const dt = new Date(d.date + "T12:00:00");
+  const dayName = dt.toLocaleDateString("en-US",{weekday:"short"}).toUpperCase();
+  const dateStr = dt.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+
+  return `
+    <div class="day" id="day-${wi}-${di}">
+      <button class="day-btn ${statusClass}" onclick="${isRest ? '' : `toggleDay(${wi},${di})`}"
+        style="${isRest ? 'cursor:default' : ''}">
+        <div class="day-date">
+          <div class="day-name">${dayName}</div>
+          <div class="day-date-str">${dateStr}</div>
+        </div>
+        <div class="day-dot" style="background:${color};opacity:${isRest?0.2:1}"></div>
+        <div class="day-label-text ${isRest?'rest-label':''}">
+          ${d.label}
+        </div>
+        ${d.miles > 0 ? `<div class="day-miles">${d.miles} mi</div>` : ""}
+        ${badge ? `<div class="day-badge" style="color:${color};background:${color}18">${badge.text}</div>` : ""}
+      </button>
+      <div class="day-detail" id="detail-${wi}-${di}"
+        style="border-color:${color}44;border-top-color:#1e1e32">
+        <div class="detail-text">${d.detail || ""}</div>
+        ${d.note ? `<div class="detail-note">
+          <div class="note-bar" style="background:${color}"></div>
+          <div class="note-text">${d.note}</div>
+        </div>` : ""}
+      </div>
+    </div>`;
+}
+
+function renderProgression(wi) {
+  return `<div class="progression">
+    <div class="prog-label">Progression Targets</div>
+    <div class="prog-tracks">
+      ${PROGRESSIONS.map(([title, color, items]) => `
+        <div class="prog-track">
+          <div class="prog-title" style="color:${color}">${title}</div>
+          ${items.map((item, i) => `
+            <div class="prog-item ${i===wi?'current':''}"
+              style="${i===wi?`border-left-color:${color}`:''}">
+              ${item}
+            </div>`).join("")}
+        </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+function toggleDay(wi, di) {
+  const key = `${wi}-${di}`;
+  const detailEl = document.getElementById(`detail-${wi}-${di}`);
+  const btnEl = document.querySelector(`#day-${wi}-${di} .day-btn`);
+
+  if (openDay === key) {
+    detailEl.classList.remove("open");
+    btnEl.classList.remove("open");
+    openDay = null;
+  } else {
+    if (openDay) {
+      const [pwi, pdi] = openDay.split("-");
+      document.getElementById(`detail-${openDay}`)?.classList.remove("open");
+      document.querySelector(`#day-${openDay} .day-btn`)?.classList.remove("open");
+    }
+    detailEl.classList.add("open");
+    btnEl.classList.add("open");
+    openDay = key;
+  }
+}
+
+function selectWeek(i) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".week").forEach(w => w.classList.remove("active"));
+  document.querySelector(`.tab[data-week="${i}"]`).classList.add("active");
+  document.getElementById(`week-${i}`).classList.add("active");
+  openDay = null;
+}
+
+function selectDefaultWeek() {
+  const today = new Date();
+  let bestWeek = 0;
+  plan.weeks.forEach((week, i) => {
+    const firstDay = week.days.find(d => d.date);
+    if (firstDay) {
+      const d = new Date(firstDay.date + "T12:00:00");
+      if (d <= today) bestWeek = i;
+    }
+  });
+  selectWeek(bestWeek);
+}
+
+loadPlan();
+</script>
+</body>
+</html>
