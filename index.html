@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chicago 13.1 — Training Plan</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap');
 
   :root {
     --bg: #07070e;
@@ -17,13 +17,6 @@
     --muted: #444466;
     --dim: #222240;
     --accent: #4db8a0;
-    --easy: #4a90d9;
-    --moderate: #4db8a0;
-    --intervals: #e05555;
-    --threshold: #e07a35;
-    --trial: #f6c90e;
-    --race: #d45a5a;
-    --rest: #1e1e30;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,7 +24,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Georgia', serif;
     font-size: 14px;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
@@ -167,22 +160,22 @@
   }
 
   .week-label {
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: bold;
     color: #c0c0e0;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
   }
 
   .week-dates {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
+    font-size: 11px;
+    color: #333366;
     margin-bottom: 5px;
   }
 
   .week-focus {
     font-size: 12px;
-    color: var(--muted);
+    color: #555577;
     font-style: italic;
   }
 
@@ -240,10 +233,11 @@
   .day-label-text {
     flex: 1;
     font-size: 13px;
+    font-family: 'Georgia', serif;
     color: #c0c0e0;
   }
 
-  .day-label-text.rest-label { color: var(--dim); }
+  .day-label-text.rest-label { color: #2a2a44; }
 
   .day-miles {
     font-family: 'IBM Plex Mono', monospace;
@@ -260,13 +254,13 @@
     padding: 2px 7px;
   }
 
-  /* Status backgrounds */
-  .status-done   { background: #0a1a12; border-color: #1f4a2a; }
-  .status-key    { background: #1a1500; border-color: #3a2e00; }
-  .status-rest   { background: #08080f; border-color: #111122; }
-  .status-race   { background: #1a0808; border-color: #5a1515; }
-  .status-upcoming { background: #0b0b18; border-color: #161626; }
-  .status-optional { background: #0c0c1a; border-color: #222238; }
+  /* Status backgrounds — matches JSX exactly */
+  .status-done     { background: #0a1a12 !important; border-color: #1f4a2a !important; }
+  .status-key      { background: #1a1500 !important; border-color: #3a2e00 !important; }
+  .status-rest     { background: #08080f !important; border-color: #111122 !important; }
+  .status-race     { background: #1a0808 !important; border-color: #5a1515 !important; }
+  .status-upcoming { background: #0b0b18 !important; border-color: #161626 !important; }
+  .status-optional { background: #0c0c1a !important; border-color: #222238 !important; }
 
   /* Detail panel */
   .day-detail {
@@ -282,16 +276,15 @@
 
   .detail-text {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: #6060808;
+    font-size: 12px;
+    color: #8080a0;
     line-height: 1.7;
-    color: #808090;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
   .detail-note {
     display: flex;
-    gap: 8px;
+    gap: 10px;
   }
 
   .note-bar {
@@ -302,7 +295,7 @@
 
   .note-text {
     font-size: 12px;
-    color: var(--muted);
+    color: #555577;
     line-height: 1.6;
     font-style: italic;
   }
@@ -399,11 +392,11 @@
   <div class="pills" id="pills"></div>
   <div class="countdown" id="countdown"></div>
   <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#4a90d9"></div>Easy</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#4db8a0"></div>Moderate</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#e05555"></div>Intervals</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#e07a35"></div>Threshold</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f6c90e"></div>Race/Trial</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4a90d9"></div>🏃 Easy</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4db8a0"></div>🌊 Moderate</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e05555"></div>⚡ Intervals</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e07a35"></div>🔥 Threshold</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f6c90e"></div>🏆 Race/Trial</div>
   </div>
 </div>
 
@@ -414,8 +407,13 @@
 const GIST_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://gist.githubusercontent.com/mowbotrobot/6e6293bc31fa5dcd2e08c0c14fbccba4/raw/training_plan.json");
 
 const TYPE_COLORS = {
-  easy:"#4a90d9", moderate:"#4db8a0", intervals:"#e05555",
-  threshold:"#e07a35", trial:"#f6c90e", race:"#d45a5a", rest:"#1e1e30"
+  easy:      { color:"#4a90d9", emoji:"🏃" },
+  moderate:  { color:"#4db8a0", emoji:"🌊" },
+  intervals: { color:"#e05555", emoji:"⚡" },
+  threshold: { color:"#e07a35", emoji:"🔥" },
+  trial:     { color:"#f6c90e", emoji:"🏁" },
+  race:      { color:"#d45a5a", emoji:"🏆" },
+  rest:      { color:"#1e1e30", emoji:"😴" }
 };
 
 const STATUS_MAP = {
@@ -519,7 +517,8 @@ function renderWeeks() {
 }
 
 function renderDay(d, wi, di) {
-  const color = TYPE_COLORS[d.type] || "#555";
+  const color = TYPE_COLORS[d.type]?.color || "#555";
+  const emoji = TYPE_COLORS[d.type]?.emoji || "";
   const status = d.status || (d.type === "rest" ? "rest" : "upcoming");
   const statusClass = STATUS_MAP[status] || "status-upcoming";
   const badge = BADGES[status];
@@ -538,7 +537,7 @@ function renderDay(d, wi, di) {
         </div>
         <div class="day-dot" style="background:${color};opacity:${isRest?0.2:1}"></div>
         <div class="day-label-text ${isRest?'rest-label':''}">
-          ${d.label}
+          ${emoji ? `${emoji} ` : ""}${d.label}
         </div>
         ${d.miles > 0 ? `<div class="day-miles">${d.miles} mi</div>` : ""}
         ${badge ? `<div class="day-badge" style="color:${color};background:${color}18">${badge.text}</div>` : ""}
