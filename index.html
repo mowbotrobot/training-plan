@@ -398,6 +398,14 @@
     <div class="legend-item"><div class="legend-dot" style="background:#e07a35"></div>🔥 Threshold</div>
     <div class="legend-item"><div class="legend-dot" style="background:#f6c90e"></div>🏆 Race/Trial</div>
   </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+    <button onclick="loadPlan(true)" style="
+      background:none;border:1px solid var(--border2);border-radius:6px;
+      color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:10px;
+      letter-spacing:0.1em;padding:5px 12px;cursor:pointer;
+      text-transform:uppercase;">↻ Refresh Plan</button>
+    <span id="refresh-status" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted)"></span>
+  </div>
 </div>
 
 <div class="tabs" id="tabs"></div>
@@ -443,21 +451,58 @@ const PROGRESSIONS = [
   ]]
 ];
 
+const CACHE_KEY = 'training_plan_cache';
+
 let plan = null;
 let openDay = null;
 
-async function loadPlan() {
+function renderFromPlan() {
+  renderHeader();
+  renderTabs();
+  renderWeeks();
+  selectDefaultWeek();
+}
+
+async function loadPlan(forceRefresh = false) {
+  // Try cache first unless forcing refresh
+  if (!forceRefresh) {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        plan = JSON.parse(cached);
+        renderFromPlan();
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("main").style.display = "block";
+        updateRefreshStatus("Loaded from cache");
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // Fetch from Gist
+  updateRefreshStatus("Fetching latest plan...");
   try {
     const r = await fetch(GIST_URL + "?t=" + Date.now());
     plan = await r.json();
-    renderHeader();
-    renderTabs();
-    renderWeeks();
-    selectDefaultWeek();
+    localStorage.setItem(CACHE_KEY, JSON.stringify(plan));
+    renderFromPlan();
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("main").style.display = "block";
+    updateRefreshStatus("Updated " + new Date().toLocaleTimeString());
   } catch(e) {
-    document.getElementById("weeks-container").innerHTML =
-      '<div class="loading">Failed to load plan. Check connection.</div>';
+    if (plan) {
+      updateRefreshStatus("Fetch failed — showing cached plan");
+    } else {
+      document.getElementById("weeks-container").innerHTML =
+        '<div class="loading">Failed to load plan. Check connection.</div>';
+      updateRefreshStatus("Failed to load");
+    }
   }
+}
+
+function updateRefreshStatus(msg) {
+  const el = document.getElementById("refresh-status");
+  if (el) el.textContent = msg;
 }
 
 function renderHeader() {
