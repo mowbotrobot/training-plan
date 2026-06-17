@@ -412,7 +412,26 @@
 <div id="weeks-container"><div class="loading"><span class="loading-dot">●</span> Loading plan...</div></div>
 
 <script>
-const GIST_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://gist.githubusercontent.com/mowbotrobot/6e6293bc31fa5dcd2e08c0c14fbccba4/raw/training_plan.json");
+const DIRECT_GIST_URL = "https://gist.githubusercontent.com/mowbotrobot/6e6293bc31fa5dcd2e08c0c14fbccba4/raw/training_plan.json";
+const PROXY_GIST_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(DIRECT_GIST_URL);
+const PROXY2_GIST_URL = "https://corsproxy.io/?" + encodeURIComponent(DIRECT_GIST_URL);
+
+async function fetchGistWithFallback() {
+  const attempts = [DIRECT_GIST_URL, PROXY_GIST_URL, PROXY2_GIST_URL];
+  let lastError = null;
+  for (const url of attempts) {
+    try {
+      const r = await fetch(url + (url.includes('?') ? '&' : '?') + "t=" + Date.now());
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const data = await r.json();
+      return data;
+    } catch (e) {
+      lastError = e;
+      continue;
+    }
+  }
+  throw lastError || new Error("All fetch attempts failed");
+}
 
 const TYPE_COLORS = {
   easy:      { color:"#4a90d9", emoji:"🏃" },
@@ -482,8 +501,7 @@ async function loadPlan(forceRefresh = false) {
   // Fetch from Gist
   updateRefreshStatus("Fetching latest plan...");
   try {
-    const r = await fetch(GIST_URL + "?t=" + Date.now());
-    plan = await r.json();
+    plan = await fetchGistWithFallback();
     localStorage.setItem(CACHE_KEY, JSON.stringify(plan));
     renderFromPlan();
     document.getElementById("loading").style.display = "none";
