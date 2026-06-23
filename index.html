@@ -452,24 +452,6 @@ const STATUS_STYLES = {
   optional: { bg: "#0c0c1a", border: "#222238", badge: "Optional" },
 };
 
-const PROGRESSIONS = [
-  ["Intervals", "#e05555", [
-    "Wk1: Recovery", "Wk2: 5×1000m @ 6:05/mi",
-    "Wk3: 4×1mi @ 6:05–6:10/mi", "Wk4: 3×2mi cruise @ HM pace",
-    "Wk5: 3×1mi sharp", "Wk6: 4×400m tune-up"
-  ]],
-  ["Threshold", "#e07a35", [
-    "Wk1: 15 min @ 6:52/mi", "Wk2: 20 min continuous",
-    "Wk3: 25 min continuous", "Wk4: 30 min — peak",
-    "Wk5: 20 min (taper)", "—"
-  ]],
-  ["Long Run", "#4db8a0", [
-    "Wk1: Knee recovery", "Wk2: 6 mi easy",
-    "Wk3: 10K or 11 mi tempo", "Wk4: 12 mi w/ 4 @ HM pace",
-    "Wk5: 8 mi easy", "Race Day"
-  ]]
-];
-
 const CACHE_KEY = 'training_plan_cache';
 
 let plan = null;
@@ -616,23 +598,6 @@ function renderDay(d, wi, di) {
         </div>` : ""}
       </div>
     </div>`;
-}
-
-function renderProgression(wi) {
-  return `<div class="progression">
-    <div class="prog-label">Progression Targets</div>
-    <div class="prog-tracks">
-      ${PROGRESSIONS.map(([title, color, items]) => `
-        <div class="prog-track">
-          <div class="prog-title" style="color:${color}">${title}</div>
-          ${items.map((item, i) => `
-            <div class="prog-item ${i===wi?'current':''}"
-              style="${i===wi?`border-left-color:${color}`:''}">
-              ${item}
-            </div>`).join("")}
-        </div>`).join("")}
-    </div>
-  </div>`;
 }
 
 function toggleDay(wi, di) {
