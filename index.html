@@ -159,6 +159,17 @@
     margin-bottom: 14px;
   }
 
+  .week-block {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
   .week-label {
     font-size: 14px;
     font-weight: bold;
@@ -412,19 +423,47 @@
 <div id="weeks-container"><div class="loading"><span class="loading-dot">●</span> Loading plan...</div></div>
 
 <script>
-const DIRECT_GIST_URL = "https://gist.githubusercontent.com/mowbotrobot/6e6293bc31fa5dcd2e08c0c14fbccba4/raw/training_plan.json";
+const GIST_ID = "6e6293bc31fa5dcd2e08c0c14fbccba4";
+const GIST_FILENAME = "training_plan.json";
+const GITHUB_API_URL = "https://api.github.com/gists/" + GIST_ID;
+const DIRECT_GIST_URL = "https://gist.githubusercontent.com/mowbotrobot/" + GIST_ID + "/raw/" + GIST_FILENAME;
 const PROXY_GIST_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(DIRECT_GIST_URL);
 const PROXY2_GIST_URL = "https://corsproxy.io/?" + encodeURIComponent(DIRECT_GIST_URL);
 
+async function fetchViaGithubApi() {
+  const r = await fetch(GITHUB_API_URL + "?t=" + Date.now());
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  const gistData = await r.json();
+  const file = gistData.files && gistData.files[GIST_FILENAME];
+  if (!file || !file.content) throw new Error("File not found in gist response");
+  return JSON.parse(file.content);
+}
+
 async function fetchGistWithFallback() {
-  const attempts = [DIRECT_GIST_URL, PROXY_GIST_URL, PROXY2_GIST_URL];
+  // GitHub's REST API reliably sends CORS headers, unlike gist.githubusercontent.com
+  // raw content URLs. Try it first, then fall back to direct/proxy methods.
+  const attempts = [
+    { name: "GitHub API", fn: fetchViaGithubApi },
+    { name: "Direct raw", fn: async () => {
+        const r = await fetch(DIRECT_GIST_URL + "?t=" + Date.now());
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return await r.json();
+      }},
+    { name: "Proxy 1", fn: async () => {
+        const r = await fetch(PROXY_GIST_URL + "&t=" + Date.now());
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return await r.json();
+      }},
+    { name: "Proxy 2", fn: async () => {
+        const r = await fetch(PROXY2_GIST_URL + "&t=" + Date.now());
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return await r.json();
+      }},
+  ];
   let lastError = null;
-  for (const url of attempts) {
+  for (const attempt of attempts) {
     try {
-      const r = await fetch(url + (url.includes('?') ? '&' : '?') + "t=" + Date.now());
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      const data = await r.json();
-      return data;
+      return await attempt.fn();
     } catch (e) {
       lastError = e;
       continue;
@@ -549,17 +588,36 @@ function renderTabs() {
   }).join("");
 }
 
+function blockStyle(block) {
+  if (!block) return null;
+  const map = {
+    "Recovery":                       { bg: "#1a1a2e", color: "#7a7aa0" },
+    "Block 1 — Endurance":            { bg: "#0a1a2e", color: "#4a90d9" },
+    "Block 2 — LT + Endurance":       { bg: "#1a1500", color: "#e0a83a" },
+    "Block 3 — Race Preparation":     { bg: "#1a0a1a", color: "#c060c0" },
+    "Block 4 — Taper and Race":       { bg: "#1a0808", color: "#d45a5a" },
+  };
+  return map[block] || { bg: "#111122", color: "#555577" };
+}
+
 function renderWeeks() {
   const container = document.getElementById("weeks-container");
-  container.innerHTML = plan.weeks.map((week, wi) => `
+  container.innerHTML = plan.weeks.map((week, wi) => {
+    const bs = blockStyle(week.block);
+    const blockBadge = week.block
+      ? `<div class="week-block" style="background:${bs.bg};color:${bs.color}">${week.block}</div>`
+      : "";
+    return `
     <div class="week" id="week-${wi}">
       <div class="week-meta">
+        ${blockBadge}
         <div class="week-label">${week.label}</div>
         <div class="week-dates">${week.dates} · ${week.miles || ""}</div>
         <div class="week-focus">${week.focus || ""}</div>
       </div>
       ${week.days.map((d, di) => renderDay(d, wi, di)).join("")}
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 
 function renderDay(d, wi, di) {
