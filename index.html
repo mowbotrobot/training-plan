@@ -555,11 +555,16 @@ function renderHeader() {
 
 function renderTabs() {
   const tabs = document.getElementById("tabs");
-  tabs.innerHTML = plan.weeks.map((w, i) => `
+  const total = plan.weeks.length;
+  tabs.innerHTML = plan.weeks.map((w, i) => {
+    const weeksToGoal = total - i; // counts down: 18, 17, ... 1 (race week = 1, shown as "Race Wk")
+    const label = i === total - 1 ? "Race Wk" : weeksToGoal + " wks";
+    return `
     <button class="tab" data-week="${i}" onclick="selectWeek(${i})">
-      ${i === plan.weeks.length - 1 ? "Race Wk" : "Week " + (i+1)}
+      ${label}
       <div class="tab-sub">${w.miles || ""}</div>
-    </button>`).join("");
+    </button>`;
+  }).join("");
 }
 
 function renderWeeks() {
