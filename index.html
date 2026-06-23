@@ -460,16 +460,16 @@ async function fetchGistWithFallback() {
         return await r.json();
       }},
   ];
-  let lastError = null;
+  const errors = [];
   for (const attempt of attempts) {
     try {
       return await attempt.fn();
     } catch (e) {
-      lastError = e;
+      errors.push(attempt.name + ": " + (e.message || "unknown"));
       continue;
     }
   }
-  throw lastError || new Error("All fetch attempts failed");
+  throw new Error(errors.join(" | "));
 }
 
 const TYPE_COLORS = {
@@ -530,7 +530,7 @@ async function loadPlan(forceRefresh = false) {
     updateRefreshStatus("Updated " + new Date().toLocaleTimeString());
   } catch(e) {
     if (plan) {
-      updateRefreshStatus("Fetch failed — showing cached plan");
+      updateRefreshStatus("Fetch failed (" + (e.message || "unknown") + ") — showing cached plan");
     } else {
       document.getElementById("weeks-container").innerHTML =
         '<div class="loading">Failed to load plan. Check connection.</div>';
