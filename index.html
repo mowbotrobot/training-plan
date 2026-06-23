@@ -577,7 +577,6 @@ function renderWeeks() {
         <div class="week-focus">${week.focus || ""}</div>
       </div>
       ${week.days.map((d, di) => renderDay(d, wi, di)).join("")}
-      ${wi < plan.weeks.length - 1 ? renderProgression(wi) : ""}
     </div>`).join("");
 }
 
